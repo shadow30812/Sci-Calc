@@ -36,6 +36,6 @@ dependencies:
       - packaging==25.0
       - pluggy==1.6.0
       - pygments==2.19.2
-      - pymep==1.0.7
       - pytest==8.4.1
+      - ty==0.0.1a13
 prefix: /home/shadow30812/miniconda3/envs/CalC

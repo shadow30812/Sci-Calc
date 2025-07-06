@@ -15,9 +15,9 @@ A comprehensive command-line scientific calculator supporting:
 import cmath
 import math
 from sys import exit, float_info
-from typing import Final
+from typing import Any, Callable, Final, Literal
 
-import CalC.calculus as calculus
+import calculus
 
 # Mathematical constants
 pi: Final[float] = math.pi
@@ -31,11 +31,11 @@ precision_epsilon: Final[float] = math.pow(
 class ScientificCalculator:
     """A comprehensive text-based scientific calculator with complex number support"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.complex_mode = False
         self.running = True
 
-    def display_intro(self):
+    def display_intro(self) -> None:
         """Display calculator introduction and basic information"""
         print("=" * 60)
         print("           SCIENTIFIC CALCULATOR")
@@ -54,9 +54,11 @@ class ScientificCalculator:
         print("• Constants 'pi' and 'e' are available for calculations")
         print("=" * 60)
 
-    def display_menu(self):
+    def display_menu(self) -> None:
         """Display the main menu options"""
-        mode_indicator = "[COMPLEX MODE]" if self.complex_mode else "[REAL MODE]"
+        mode_indicator: Literal["[COMPLEX MODE]"] | Literal["[REAL MODE]"] = (
+            "[COMPLEX MODE]" if self.complex_mode else "[REAL MODE]"
+        )
         print(f"\n{mode_indicator} MAIN MENU:")
         print("0.  Exit the calculator")
         print("1.  Basic Arithmetic")
@@ -71,11 +73,11 @@ class ScientificCalculator:
         print("10. Numerical calculus functions")
         print("-" * 40)
 
-    def get_number_input(self, prompt="Enter number: "):
+    def get_number_input(self, prompt="Enter number: ") -> float | complex:
         """Get number input from user, supporting both real and complex numbers"""
         while True:
             try:
-                user_input = input(prompt).strip()
+                user_input: str = input(prompt).strip()
 
                 # Handle constants
                 if user_input.lower() == "pi":
@@ -91,7 +93,7 @@ class ScientificCalculator:
                 else:
                     # Try to parse as float
                     num = float(user_input)
-                    if num <= float_info.epsilon:
+                    if abs(num) <= float_info.epsilon and num:
                         print(
                             f"Input values cannot be smaller than machine epsilon: {float_info.epsilon}"
                         )
@@ -104,10 +106,10 @@ class ScientificCalculator:
                     "Invalid input. Please enter a valid number, 'pi', 'e', or complex number (e.g., 3+4j)"
                 )
 
-    def safe_operation(self, operation, *args):
+    def safe_operation(self, operation, *args) -> Any:
         """Safely execute mathematical operations with error handling"""
         try:
-            result = operation(*args)
+            result: complex = operation(*args)
             return result
         except ZeroDivisionError:
             print("Error: Division by zero!")
@@ -119,17 +121,17 @@ class ScientificCalculator:
             print(f"Error: {e}")
             return None
 
-    def display_result(self, result):
+    def display_result(self, result) -> None:
         """Display calculation result in appropriate format"""
         if result is None:
             return
 
         if isinstance(result, complex):
             # Format complex number nicely
-            real_part = result.real if abs(result.real) > TOL else 0
-            imag_part = result.imag if abs(result.imag) > TOL else 0
+            real_part: float | Literal[0] = result.real if abs(result.real) > TOL else 0
+            imag_part: float | Literal[0] = result.imag if abs(result.imag) > TOL else 0
             for part in [real_part, imag_part]:
-                rel_error = part * precision_epsilon
+                rel_error: float = part * precision_epsilon
                 if part - int(part) < rel_error:
                     part = int(part)
 
@@ -157,7 +159,7 @@ class ScientificCalculator:
                     result = int(result)
                 print(f"Result: {result}")
 
-    def basic_arithmetic(self):
+    def basic_arithmetic(self) -> None:
         """Handle basic arithmetic operations"""
         print("\nBASIC ARITHMETIC OPERATIONS:")
         print("1. Addition (+)")
@@ -168,14 +170,16 @@ class ScientificCalculator:
         print("6. Modulo (%)")
         print("7. Absolute Value (|x|)")
 
-        choice = input("Select operation (1-7): ").strip()
+        choice: str = input("Select operation (1-7): ").strip()
 
         if choice in ["1", "2", "3", "4", "5", "6"]:
-            num1 = self.get_number_input("Enter first number: ")
-            num2 = self.get_number_input("Enter second number: ")
+            num1: float | complex = self.get_number_input("Enter first number: ")
+            num2: float | complex = self.get_number_input("Enter second number: ")
 
             if choice == "1":  # Addition
-                result = self.safe_operation(lambda x, y: x + y, num1, num2)
+                result: float | complex = self.safe_operation(
+                    lambda x, y: x + y, num1, num2
+                )
             elif choice == "2":  # Subtraction
                 result = self.safe_operation(lambda x, y: x - y, num1, num2)
             elif choice == "3":  # Multiplication
@@ -201,7 +205,7 @@ class ScientificCalculator:
                     return
                 result = self.safe_operation(lambda x, y: x % y, num1, num2)
             elif choice == "7":  # Absolute value (modulus for complex numbers)
-                num = self.get_number_input("Enter number: ")
+                num: float | complex = self.get_number_input("Enter number: ")
                 result = self.safe_operation(
                     abs, num
                 )  # This gives the modulus for complex numbers
@@ -211,7 +215,7 @@ class ScientificCalculator:
 
             self.display_result(result)
 
-    def power_operations(self):
+    def power_operations(self) -> None:
         """Handle power and root operations"""
         print("\nPOWER & ROOT OPERATIONS:")
         print("1. Exponentiation (a^x)")
@@ -219,18 +223,20 @@ class ScientificCalculator:
         print("3. Square Root")
         print("4. nth Root")
 
-        choice = input("Select operation (1-4): ").strip()
+        choice: str = input("Select operation (1-4): ").strip()
 
         if choice == "1":
-            base = self.get_number_input("Enter base (a): ")
-            exponent = self.get_number_input("Enter exponent (x): ")
+            base: float | complex = self.get_number_input("Enter base (a): ")
+            exponent: float | complex = self.get_number_input("Enter exponent (x): ")
             if (
                 self.complex_mode
                 or isinstance(base, complex)
                 or isinstance(exponent, complex)
             ):
                 # Using Euler's formula: a^x = exp(x * ln(a))
-                result = self.safe_operation(cmath.exp, exponent * cmath.log(base))
+                result: float | complex = self.safe_operation(
+                    cmath.exp, exponent * cmath.log(base)
+                )
             else:
                 result = self.safe_operation(pow, base, exponent)
 
@@ -240,7 +246,7 @@ class ScientificCalculator:
             result = self.safe_operation(pow, base, exponent)
 
         elif choice == "3":
-            num = self.get_number_input("Enter number: ")
+            num: float | complex = self.get_number_input("Enter number: ")
             if self.complex_mode or isinstance(num, complex):
                 result = self.safe_operation(cmath.sqrt, num)
             else:
@@ -248,7 +254,7 @@ class ScientificCalculator:
 
         elif choice == "4":
             num = self.get_number_input("Enter number: ")
-            root = self.get_number_input("Enter root (n): ")
+            root: float | complex = self.get_number_input("Enter root (n): ")
             result = self.safe_operation(pow, num, 1 / root)
 
         else:
@@ -257,7 +263,7 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def trigonometric_functions(self):
+    def trigonometric_functions(self) -> None:
         """Handle trigonometric functions"""
         print("\nTRIGONOMETRIC FUNCTIONS (angles in radians):")
         print("1. sin(x)")
@@ -267,12 +273,12 @@ class ScientificCalculator:
         print("5. csc(x)")
         print("6. cot(x)")
 
-        choice = input("Select function (1-6): ").strip()
-        num = self.get_number_input("Enter angle in radians: ")
+        choice: str = input("Select function (1-6): ").strip()
+        num: float | complex = self.get_number_input("Enter angle in radians: ")
 
         if choice == "1":  # sin
             if self.complex_mode or isinstance(num, complex):
-                result = self.safe_operation(cmath.sin, num)
+                result: float | complex = self.safe_operation(cmath.sin, num)
             else:
                 result = self.safe_operation(math.sin, num)
         elif choice == "2":  # cos
@@ -306,7 +312,7 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def hyperbolic_functions(self):
+    def hyperbolic_functions(self) -> None:
         """Handle hyperbolic functions"""
         print("\nHYPERBOLIC FUNCTIONS:")
         print("1. sinh(x)")
@@ -316,12 +322,12 @@ class ScientificCalculator:
         print("5. csch(x)")
         print("6. coth(x)")
 
-        choice = input("Select function (1-6): ").strip()
-        num = self.get_number_input("Enter number: ")
+        choice: str = input("Select function (1-6): ").strip()
+        num: float | complex = self.get_number_input("Enter number: ")
 
         if choice == "1":  # sinh
             if self.complex_mode or isinstance(num, complex):
-                result = self.safe_operation(cmath.sinh, num)
+                result: float | complex = self.safe_operation(cmath.sinh, num)
             else:
                 result = self.safe_operation(math.sinh, num)
         elif choice == "2":  # cosh
@@ -355,7 +361,7 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def inverse_trigonometric_functions(self):
+    def inverse_trigonometric_functions(self) -> None:
         """Handle inverse trigonometric functions"""
         print("\nINVERSE TRIGONOMETRIC FUNCTIONS (result in radians):")
         print("1. arcsin(x) / asin(x)")
@@ -365,12 +371,12 @@ class ScientificCalculator:
         print("5. arccsc(x)")
         print("6. arccot(x)")
 
-        choice = input("Select function (1-6): ").strip()
-        num = self.get_number_input("Enter number: ")
+        choice: str = input("Select function (1-6): ").strip()
+        num: float | complex = self.get_number_input("Enter number: ")
 
         if choice == "1":  # arcsin
             if self.complex_mode or isinstance(num, complex):
-                result = self.safe_operation(cmath.asin, num)
+                result: float | complex = self.safe_operation(cmath.asin, num)
             else:
                 result = self.safe_operation(math.asin, num)
         elif choice == "2":  # arccos
@@ -404,7 +410,7 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def logarithmic_functions(self):
+    def logarithmic_functions(self) -> None:
         """Handle logarithmic functions"""
         print("\nLOGARITHMIC FUNCTIONS:")
         print("1. Natural logarithm ln(x)")
@@ -413,12 +419,12 @@ class ScientificCalculator:
         print("4. Exponential e^x")
         print("5. Exponential 10^x")
 
-        choice = input("Select function (1-5): ").strip()
+        choice: str = input("Select function (1-5): ").strip()
 
         if choice == "1":  # Natural logarithm
-            num = self.get_number_input("Enter number: ")
+            num: float | complex = self.get_number_input("Enter number: ")
             if self.complex_mode or isinstance(num, complex):
-                result = self.safe_operation(cmath.log, num)
+                result: float | complex = self.safe_operation(cmath.log, num)
             else:
                 result = self.safe_operation(math.log, num)
 
@@ -431,7 +437,7 @@ class ScientificCalculator:
 
         elif choice == "3":  # Custom base logarithm
             num = self.get_number_input("Enter number: ")
-            base = self.get_number_input("Enter base: ")
+            base: float | complex = self.get_number_input("Enter base: ")
             if (
                 self.complex_mode
                 or isinstance(num, complex)
@@ -461,7 +467,7 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def special_functions(self):
+    def special_functions(self) -> None:
         """Handle special mathematical functions"""
         print("\nSPECIAL FUNCTIONS:")
         print("1. Factorial (n!)")
@@ -472,10 +478,10 @@ class ScientificCalculator:
         print("6. Polar form")
         print("7. Rectangular form")
 
-        choice = input("Select function (1-7): ").strip()
+        choice: str = input("Select function (1-7): ").strip()
 
         if choice == "1":  # Factorial
-            num = self.get_number_input("Enter non-negative integer: ")
+            num: float | complex = self.get_number_input("Enter non-negative integer: ")
             if isinstance(num, complex) and num.imag != 0:
                 print(
                     "Factorial is not defined for complex numbers with non-zero imaginary part."
@@ -488,7 +494,7 @@ class ScientificCalculator:
             if num < 0:
                 print("Factorial is not defined for negative numbers.")
                 return
-            result = self.safe_operation(math.factorial, num)
+            result: Any = self.safe_operation(math.factorial, num)
 
         elif choice == "2":  # Degrees to Radians
             num = self.get_number_input("Enter angle in degrees: ")
@@ -528,16 +534,18 @@ class ScientificCalculator:
             num = self.get_number_input("Enter complex number: ")
             if not isinstance(num, complex):
                 num = complex(num)
-            polar = self.safe_operation(cmath.polar, num)
-            if polar:
-                print(f"Polar form: r = {polar[0]}, θ = {polar[1]} radians")
+            result = self.safe_operation(cmath.polar, num)
+            if result:
+                print(f"Polar form: r = {result[0]}, θ = {result[1]} radians")
                 return
             else:
                 result = 0
 
         elif choice == "7":  # Rectangular form
-            r = self.get_number_input("Enter magnitude (r): ")
-            theta = self.get_number_input("Enter phase angle (θ) in radians: ")
+            r: float | complex = self.get_number_input("Enter magnitude (r): ")
+            theta: float | complex = self.get_number_input(
+                "Enter phase angle (θ) in radians: "
+            )
             result = self.safe_operation(cmath.rect, r, theta)
 
         else:
@@ -546,13 +554,15 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def toggle_complex_mode(self):
+    def toggle_complex_mode(self) -> None:
         """Toggle between real and complex number modes"""
-        self.complex_mode = not self.complex_mode
-        mode = "COMPLEX" if self.complex_mode else "REAL"
+        self.complex_mode: bool = not self.complex_mode
+        mode: Literal["COMPLEX"] | Literal["REAL"] = (
+            "COMPLEX" if self.complex_mode else "REAL"
+        )
         print(f"Switched to {mode} MODE")
 
-    def help_and_constants(self):
+    def help_and_constants(self) -> None:
         """Display help information and available constants"""
         print("\nHELP & CONSTANTS:")
         print("Available constants:")
@@ -571,7 +581,7 @@ class ScientificCalculator:
         print("\nDunder methods are implemented for complex number operations:")
         print("• __add__, __sub__, __mul__, __truediv__, __abs__")
 
-    def numeric_calculus(self):
+    def numeric_calculus(self) -> None:
         """Handle numeric calculus functions and parsing"""
         print("\nNUMERIC CALCULUS FUNCTIONS:")
         print("1. Compute value of a function at a particular value")
@@ -580,37 +590,32 @@ class ScientificCalculator:
         print("4. Contour integration")
         print("5. Root of a function")
 
-        choice = input("Select function (1-5): ").strip()
+        choice: str = input("Select function (1-5): ").strip()
         print("Reserved keywords: 'pi', 'e', 'inf', 'epsilon'")
+        print("Avoid using i or j as variable names (iotaBound)")
 
         if choice == "1":
-            expr = input("Enter the function: ")
-            var = input("Enter the variable in the function: ")
-            f = calculus.make_func(expr, var)
-            num = self.get_number_input(
+            expr: str = input("Enter the function: ")
+            var: str = input("Enter the variable in the function: ")
+            f: Callable[[float | complex], complex] = calculus.make_func(expr, var)
+            num: float | complex = self.get_number_input(
                 "Enter the value at which you wish to calculate the function: "
             )
-            result = self.safe_operation(f, num)
+            result: float | complex = self.safe_operation(f, num)
 
         elif choice == "2":
             expr = input("Enter the function: ")
             var = input("Enter the variable in the function: ")
             f = calculus.make_func(expr, var)
-            pt = self.get_number_input(
+            pt: float | complex = self.get_number_input(
                 "Enter the point at which you wish to differentiate the function: "
             )
             diff = calculus.differentiation()
-            while True:
-                type = input(
-                    "\n"
-                    "Is the function real-valued? Is the point real?\n"
-                    "If the answer to either of them is no, type 'complex'.\n"
-                    "Otherwise type 'real'. Type 'complex' if not sure.\n"
-                ).lower()
-                if type in ["real", "complex"]:
-                    break
-                else:
-                    print("Invalid type of operation specified. Please try again.")
+            type: Literal["complex"] | Literal["real"] = (
+                "complex"
+                if isinstance(pt, complex) or "i" in expr or "j" in expr
+                else "real"
+            )
 
             if type == "real":
                 result = self.safe_operation(diff.real_diff, f, pt)
@@ -621,29 +626,29 @@ class ScientificCalculator:
             expr = input("Enter the function: ")
             var = input("Enter the variable in the function: ")
             f = calculus.make_func(expr, var)
-            a = self.get_number_input("Enter the lower limit of integration: ")
-            b = self.get_number_input("Enter the upper limit of integration: ")
+            a: float | complex = self.get_number_input(
+                "Enter the lower limit of integration: "
+            )
+            b: float | complex = self.get_number_input(
+                "Enter the upper limit of integration: "
+            )
             result = self.safe_operation(calculus.integration().interval_int, f, a, b)
 
         elif choice == "4":
-            func_expr = input("Enter the function to be integrated: ")
-            func_var = input("Enter the variable in the function: ")
+            func_expr: str = input("Enter the function to be integrated: ")
+            func_var: str = input("Enter the variable in the function: ")
             f = calculus.make_func(func_expr, func_var)
 
-            cont_expr = input("Enter the contour function: ")
-            cont_var = input("Enter the variable in the function: ")
-            z = calculus.make_func(cont_expr, cont_var)
+            cont_expr: str = input("Enter the contour function: ")
+            cont_var: str = input("Enter the variable in the function: ")
+            z: Callable[[float | complex], complex] = calculus.make_func(
+                cont_expr, cont_var
+            )
 
             a = self.get_number_input("Enter the lower limit of integration: ")
             b = self.get_number_input("Enter the upper limit of integration: ")
-            ch = input(
-                "Do you want to set the number of intervals for the sake of precision? [Y/n]\n"
-            ).lower()
+            N = int(input("Intervals [default 1000]: ") or 1000)
 
-            if ch == "y":
-                N = int(input("Enter the number of intervals: "))
-            else:
-                N = calculus.iter_max
             result = self.safe_operation(
                 calculus.integration().contour_int, f, z, a, b, N
             )
@@ -652,7 +657,7 @@ class ScientificCalculator:
             expr = input("Enter the function: ")
             var = input("Enter the variable in the function: ")
             f = calculus.make_func(expr, var)
-            guess = self.get_number_input("Enter initial guess: ")
+            guess: float | complex = self.get_number_input("Enter initial guess: ")
             result = self.safe_operation(calculus.find_root, f, guess)
 
         else:
@@ -661,12 +666,12 @@ class ScientificCalculator:
 
         self.display_result(result)
 
-    def run(self):
+    def run(self) -> None:
         """Run the main calculator loop"""
         self.display_intro()
         while self.running:
             self.display_menu()
-            choice = input("Enter your choice (0-10): ").strip()
+            choice: str = input("Enter your choice (0-10): ").strip()
 
             if choice == "0":
                 print("\nThank you for using CalC!")
@@ -699,7 +704,7 @@ class ScientificCalculator:
                 input("\nPress Enter to continue...")
 
 
-def main():
+def main() -> None:
     """Main function to run the calculator"""
     try:
         calculator = ScientificCalculator()
